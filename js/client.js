@@ -4,7 +4,6 @@ var cardButtonCallback = function(t) {
   return t.modal({
     title: 'Gestiona materials',
     url: 'product-manager.html', 
-    fullscreen: true,
   });
 }
 
