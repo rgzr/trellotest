@@ -23,6 +23,10 @@
       cursor: pointer;
       margin-left: 10px;
     }
+    .highlight {
+      background-color: yellow;
+      transition: background-color 0.5s ease;
+    }
   </style>
 </head>
 <body>
@@ -66,13 +70,43 @@
     // Function to add the product to the Trello card with quantity
     function addProductToCard(productId, productName) {
       t.get('card', 'shared', 'products', [])
-        .then(products => {
+      .then(products => {
+        // Check if the product already exists in the list
+        const existingProduct = products.find(product => product.id === productId);
+
+        if (existingProduct) {
+          return products;
+        } else {
           products.push({ id: productId, name: productName, quantity: 1 });
           return t.set('card', 'shared', 'products', products);
-        })
-        .then(() => {
-          loadAddedProducts(); // Reload the list after adding
-        });
+        }
+      })
+      .then(() => {
+        loadAddedProducts(); // Reload the list after adding
+        highlightExistingProduct(productId);
+      });
+    }
+
+    // Function to scroll to and highlight the existing product
+    function highlightExistingProduct(productId) {
+      // Wait for the DOM to update after loading the added products
+      setTimeout(() => {
+        const productElement = document.querySelector(`#product-${productId}`);
+
+        if (productElement) {
+          // Focus on the quantity input for the existing product
+          const quantityInput = productElement.querySelector('.quantity-input');
+          quantityInput.focus();
+
+          // Add a highlight animation (e.g., change background color)
+          productElement.classList.add('highlight');
+
+          // Remove the highlight after a short delay
+          setTimeout(() => {
+            productElement.classList.remove('highlight');
+          }, 1000); // Highlight lasts for 1 second
+        }
+      }, 100); // Slight delay to ensure the product list is rendered
     }
 
     // Function to load the list of products added to the card
@@ -84,6 +118,7 @@
 
           products.forEach(product => {
             const li = document.createElement('li');
+            li.id = `product-${product.id}`;
             li.innerHTML = `
               ${product.name}
               <input type="number" class="quantity-input" value="${product.quantity}" onchange="updateProductQuantity('${product.id}', this.value)" />
