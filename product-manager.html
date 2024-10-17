@@ -101,15 +101,6 @@
 
     // Listen for input changes (search as you type)
     document.getElementById('search-input').addEventListener('input', searchProducts);
-    
-    // Callback to open the product manager when the "Manage Products" button is clicked
-    window.onManageProductsButtonClick = function (t) {
-      return t.popup({
-        title: 'Gestiona Materials',
-        url: './product-manager.html',  // This URL is the page that hosts this code
-        height: 200
-      });
-    };
   </script>
 </body>
 </html>
