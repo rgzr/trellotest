@@ -114,9 +114,18 @@ body {
       const productList = document.getElementById('products');
       productList.innerHTML = ''; // Clear previous search results
 
-      const filteredProducts = mockProducts.filter(product => product.name.toLowerCase().includes(searchTerm));
+      // If the search term is empty, return without showing any products
+      if (!searchTerm) {
+        return; // No products to show if the input is empty
+      }
 
-      filteredProducts.forEach(product => {
+      // Filter products based on the search term
+      const filteredProducts = mockProducts.filter(product => 
+        product.name.toLowerCase().includes(searchTerm)
+      );
+
+      // Limit to a maximum of 5 products and display them
+      filteredProducts.slice(0, 5).forEach(product => {
         const li = document.createElement('li');
         li.innerHTML = `${product.name}`;
         li.onclick = () => addProductToCard(product.id, product.name);
@@ -139,6 +148,9 @@ body {
         }
       })
       .then(() => {
+        document.getElementById('search-input').value = ''; // Clear the search input
+        document.getElementById('products').innerHTML = ''; // Clear the product list
+        
         loadAddedProducts(); // Reload the list after adding
         highlightExistingProduct(productId);
       });
