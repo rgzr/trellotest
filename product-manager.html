@@ -4,27 +4,85 @@
   <title>Materials</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <style>
-    #product-search {
-      margin: 20px;
+/* Use Trello's font styles */
+body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      color: #5e6c84;
+      margin: 0;
+      padding: 20px;
+      background-color: #fafbfc;
     }
+
+    /* Search input style */
+    #search-input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #dfe1e6;
+      border-radius: 3px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+
+    /* Product list style */
     #products, #added-products {
       list-style-type: none;
       padding-left: 0;
     }
+
     #products li, #added-products li {
-      margin: 10px 0;
-    }
-    .quantity-input {
-      width: 50px;
-      margin-right: 10px;
-    }
-    .remove-btn {
-      color: red;
+      background-color: #fff;
+      border: 1px solid #dfe1e6;
+      border-radius: 3px;
+      padding: 10px;
+      margin-bottom: 10px;
       cursor: pointer;
-      margin-left: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s ease;
     }
+
+    #products li:hover {
+      background-color: #f4f5f7;
+    }
+
+    .quantity-input {
+      width: 40px;
+      text-align: center;
+      border: 1px solid #dfe1e6;
+      border-radius: 3px;
+      margin: 0 10px;
+    }
+
+    /* Plus, minus, and remove buttons */
+    .btn {
+      background-color: #0079bf;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 5px;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn:hover {
+      background-color: #026aa7;
+    }
+
+    .btn-remove {
+      background-color: #eb5a46;
+    }
+
+    .btn-remove:hover {
+      background-color: #b04632;
+    }
+
+    /* Highlight animation for existing products */
     .highlight {
-      background-color: yellow;
+      background-color: #ffeaa7;
       transition: background-color 0.5s ease;
     }
   </style>
@@ -34,7 +92,7 @@
     <input type="text" id="search-input" placeholder="Busca materials pel nom" />
     <ul id="products"></ul>
 
-    <h2>Materials afegits</h2>
+    <h2>Materials utilitzats</h2>
     <ul id="added-products"></ul>
   </div>
 
@@ -43,10 +101,11 @@
     
     // Mocked product data (you can replace this with real data later)
     const mockProducts = [
-      { id: '1', name: 'Material A' },
-      { id: '2', name: 'Material B' },
-      { id: '3', name: 'Material C' },
-      { id: '4', name: 'Material D' }
+      { id: '1', name: 'Cable 25' },
+      { id: '2', name: 'Cable 50' },
+      { id: '3', name: 'Cajetilla XLA' },
+      { id: '4', name: 'Canaleta 123' },
+      { id: '5', name: 'Schuko AAA' }
     ];
 
     // Function to search products (mocked for now)
@@ -59,10 +118,8 @@
 
       filteredProducts.forEach(product => {
         const li = document.createElement('li');
-        li.innerHTML = `
-          ${product.name}
-          <button onclick="addProductToCard('${product.id}', '${product.name}')">Afegir</button>
-        `;
+        li.innerHTML = `${product.name}`;
+        li.onclick = () => addProductToCard(product.id, product.name);
         productList.appendChild(li);
       });
     }
@@ -121,11 +178,32 @@
             li.id = `product-${product.id}`;
             li.innerHTML = `
               ${product.name}
-              <input type="number" class="quantity-input" value="${product.quantity}" onchange="updateProductQuantity('${product.id}', this.value)" />
-              <span class="remove-btn" onclick="removeProductFromCard('${product.id}')">Remove</span>
+              <div>
+                <button class="btn" onclick="changeProductQuantity('${product.id}', -1)">-</button>
+                <input type="number" class="quantity-input" value="${product.quantity}" onchange="updateProductQuantity('${product.id}', this.value)" />
+                <button class="btn" onclick="changeProductQuantity('${product.id}', 1)">+</button>
+                <button class="btn btn-remove" onclick="removeProductFromCard('${product.id}')">Remove</button>
+              </div>
             `;
             addedProductsList.appendChild(li);
           });
+        });
+    }
+
+    // Function to change the quantity using +/- buttons
+    function changeProductQuantity(productId, change) {
+      t.get('card', 'shared', 'products', [])
+        .then(products => {
+          const updatedProducts = products.map(product => {
+            if (product.id === productId) {
+              product.quantity = Math.max(1, product.quantity + change); // Ensure quantity is at least 1
+            }
+            return product;
+          });
+          return t.set('card', 'shared', 'products', updatedProducts);
+        })
+        .then(() => {
+          loadAddedProducts(); // Reload after quantity change
         });
     }
 
@@ -140,6 +218,9 @@
             return product;
           });
           return t.set('card', 'shared', 'products', updatedProducts);
+        })
+        .then(() => {
+          loadAddedProducts(); // Reload after quantity change
         });
     }
 
