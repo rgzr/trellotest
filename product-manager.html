@@ -18,78 +18,89 @@
 </head>
 <body>
   <div id="product-manager">
-    <input type="text" id="search-input" placeholder="Search materials" />
+    <input type="text" id="search-input" placeholder="Busca materials pel nom" />
+    
     <ul id="products"></ul>
   </div>
 
   <script>
+    // Initialize Trello Power-Up client
     var t = TrelloPowerUp.iframe();
 
+    // Mocked product data (you can replace this with real data later)
     const mockProducts = [
       { id: '1', name: 'Material A' },
       { id: '2', name: 'Material B' },
       { id: '3', name: 'Material C' },
       { id: '4', name: 'Material D' }
     ];
-
+    
+    // Function to search products using your CMS API
     function searchProducts() {
-      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const searchTerm = document.getElementById('search-input').value;
+      const apiUrl = `https://your-cms-api.com/search/${encodeURIComponent(searchTerm)}`;
+
       const productList = document.getElementById('products');
       productList.innerHTML = ''; // Clear previous search results
 
+      // Filter mocked products based on search term
       const filteredProducts = mockProducts.filter(product =>
         product.name.toLowerCase().includes(searchTerm)
       );
 
+      // Display filtered products with an "Add" button
       filteredProducts.forEach(product => {
         const li = document.createElement('li');
         li.innerHTML = `
           ${product.name}
-          <input type="number" min="1" id="quantity-${product.id}" value="1" style="width: 50px;" />
-          <button onclick="addProductToCard('${product.id}', '${product.name}')">Add</button>
+          <button onclick="addProductToCard('${product.id}', '${product.name}')">Afegir</button>
         `;
         productList.appendChild(li);
       });
+      
+      // fetch(apiUrl)
+      //   .then(response => response.json())
+      //   .then(data => {
+      //     const productList = document.getElementById('products');
+      //     productList.innerHTML = ''; // Clear previous search results
+
+      //     data.forEach(product => {
+      //       const li = document.createElement('li');
+      //       li.innerHTML = `
+      //         ${product.name}
+      //         <button onclick="addProductToCard('${product.id}', '${product.name}')">Add</button>
+      //       `;
+      //       productList.appendChild(li);
+      //     });
+      //   });
     }
 
+    // Function to add the product to the Trello card
     function addProductToCard(productId, productName) {
-      const quantity = document.getElementById(`quantity-${productId}`).value;
       t.get('card', 'shared', 'products', [])
         .then(products => {
-          const existingProduct = products.find(p => p.id === productId);
-          if (existingProduct) {
-            existingProduct.quantity = parseInt(quantity);
-          } else {
-            products.push({ id: productId, name: productName, quantity: parseInt(quantity) });
-          }
+          products.push({ id: productId, name: productName });
           return t.set('card', 'shared', 'products', products);
         })
-        .then(() => t.closePopup()); // Close the popup
+        .then(() => {
+          t.closePopup(); // Close the popup after adding the product
+        });
     }
 
+    // Function to remove a product from the Trello card
     function removeProductFromCard(productId) {
       t.get('card', 'shared', 'products', [])
         .then(products => {
           const updatedProducts = products.filter(product => product.id !== productId);
           return t.set('card', 'shared', 'products', updatedProducts);
         })
-        .then(() => t.closePopup()); // Close the popup
+        .then(() => {
+          t.closePopup(); // Close the popup after removing the product
+        });
     }
 
+    // Listen for input changes (search as you type)
     document.getElementById('search-input').addEventListener('input', searchProducts);
-
-    // Pre-populate the product list if the card already has products
-    t.get('card', 'shared', 'products', []).then(function(products) {
-      const productList = document.getElementById('products');
-      products.forEach(product => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          ${product.name} (Quantity: <input type="number" min="1" id="quantity-${product.id}" value="${product.quantity}" style="width: 50px;" />)
-          <button onclick="removeProductFromCard('${product.id}')">Remove</button>
-        `;
-        productList.appendChild(li);
-      });
-    });
   </script>
 </body>
 </html>
