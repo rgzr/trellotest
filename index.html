@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Materials</title>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <style>
+    #product-search {
+      margin: 20px;
+    }
+    #products {
+      list-style-type: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="product-manager">
+    <input type="text" id="search-input" placeholder="Busca materials pel nom" />
+    <button onclick="searchProducts()">Buscar material</button>
+    
+    <ul id="products"></ul>
+  </div>
+
+  <script>
+    // Initialize Trello Power-Up client
+    var t = TrelloPowerUp.iframe();
+
+    // Mocked product data (you can replace this with real data later)
+    const mockProducts = [
+      { id: '1', name: 'Material A' },
+      { id: '2', name: 'Material B' },
+      { id: '3', name: 'Material C' },
+      { id: '4', name: 'Material D' }
+    ];
+    
+    // Function to search products using your CMS API
+    function searchProducts() {
+      const searchTerm = document.getElementById('search-input').value;
+      const apiUrl = `https://your-cms-api.com/search/${encodeURIComponent(searchTerm)}`;
+
+      const productList = document.getElementById('products');
+      productList.innerHTML = ''; // Clear previous search results
+
+      // Filter mocked products based on search term
+      const filteredProducts = mockProducts.filter(product =>
+        product.name.toLowerCase().includes(searchTerm)
+      );
+
+      // Display filtered products with an "Add" button
+      filteredProducts.forEach(product => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          ${product.name}
+          <button onclick="addProductToCard('${product.id}', '${product.name}')">Afegir</button>
+        `;
+        productList.appendChild(li);
+      });
+      
+      // fetch(apiUrl)
+      //   .then(response => response.json())
+      //   .then(data => {
+      //     const productList = document.getElementById('products');
+      //     productList.innerHTML = ''; // Clear previous search results
+
+      //     data.forEach(product => {
+      //       const li = document.createElement('li');
+      //       li.innerHTML = `
+      //         ${product.name}
+      //         <button onclick="addProductToCard('${product.id}', '${product.name}')">Add</button>
+      //       `;
+      //       productList.appendChild(li);
+      //     });
+      //   });
+    }
+
+    // Function to add the product to the Trello card
+    function addProductToCard(productId, productName) {
+      t.get('card', 'shared', 'products', [])
+        .then(products => {
+          products.push({ id: productId, name: productName });
+          return t.set('card', 'shared', 'products', products);
+        })
+        .then(() => {
+          t.closePopup(); // Close the popup after adding the product
+        });
+    }
+
+    // Function to remove a product from the Trello card
+    function removeProductFromCard(productId) {
+      t.get('card', 'shared', 'products', [])
+        .then(products => {
+          const updatedProducts = products.filter(product => product.id !== productId);
+          return t.set('card', 'shared', 'products', updatedProducts);
+        })
+        .then(() => {
+          t.closePopup(); // Close the popup after removing the product
+        });
+    }
+
+    // Callback to open the product manager when the "Manage Products" button is clicked
+    window.onManageProductsButtonClick = function (t) {
+      return t.popup({
+        title: 'Gestiona Materials',
+        url: './index.html',  // This URL is the page that hosts this code
+        height: 200
+      });
+    };
+  </script>
+</body>
+</html>
