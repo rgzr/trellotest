@@ -7,7 +7,7 @@ var t = TrelloPowerUp.initialize({
         // Show a popup when the button is clicked
         return t.popup({
           title: 'Gestiona materials',
-          url: './product-manager.html',  // The popup points to an HTML page
+          url: 'product-manager.html',  // The popup points to an HTML page
           height: 250
         });
       }
